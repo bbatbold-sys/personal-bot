@@ -25,9 +25,12 @@ def _fetch():
     results = []
     for symbol, name in TICKERS.items():
         try:
-            fi = yf.Ticker(symbol).fast_info
-            price = fi.last_price
-            prev = fi.previous_close
+            hist = yf.Ticker(symbol).history(period="5d")
+            if len(hist) < 2:
+                print(f"Not enough data for {symbol}")
+                continue
+            price = float(hist["Close"].iloc[-1])
+            prev = float(hist["Close"].iloc[-2])
             change_pct = ((price - prev) / prev) * 100
             results.append((symbol, name, price, change_pct))
         except Exception as e:
