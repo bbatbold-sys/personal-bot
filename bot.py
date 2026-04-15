@@ -19,6 +19,7 @@ async def main():
         await bot.load_extension("handlers.weather")
         await bot.load_extension("handlers.joke")
         await bot.load_extension("handlers.quote")
+        await bot.load_extension("handlers.stock")
         await bot.start(DISCORD_TOKEN)
 
 
