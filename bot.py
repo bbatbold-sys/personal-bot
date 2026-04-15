@@ -20,6 +20,11 @@ async def main():
         await bot.load_extension("handlers.joke")
         await bot.load_extension("handlers.quote")
         await bot.load_extension("handlers.stock")
+        try:
+            await bot.load_extension("handlers.prediction")
+            print("Prediction handler loaded.")
+        except Exception as e:
+            print(f"Prediction handler skipped (ML deps not available): {e}")
         await bot.start(DISCORD_TOKEN)
 
 

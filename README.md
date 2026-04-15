@@ -1,6 +1,6 @@
 # Personal Discord Bot
 
-A Discord bot with three commands: weather lookup, random jokes, and inspirational quotes. Built with `discord.py` and deployed on Railway.
+A Discord bot with five commands: weather lookup, dad jokes, inspirational quotes, live stock prices with charts, and AI-powered stock predictions. Built with `discord.py` and deployed on Railway.
 
 ---
 
@@ -10,8 +10,12 @@ A Discord bot with three commands: weather lookup, random jokes, and inspiration
 |---------|-------------|---------|
 | `!hello` | Show help message | `!hello` |
 | `!weather <city>` | Current weather for any city | `!weather Tokyo` |
-| `!joke` | Random joke (family-friendly) | `!joke` |
+| `!joke` | Random dad joke | `!joke` |
 | `!quote` | Random inspirational quote | `!quote` |
+| `!stock` | Live prices + daily % change chart for top stocks and gold | `!stock` |
+| `!prediction <ticker>` | AI BUY/SELL/HOLD prediction from latest news (local only) | `!prediction NVDA` |
+
+> **Note:** `!prediction` uses FinBERT + XGBoost ML models and runs locally only. All other commands are deployed and always available.
 
 ---
 
@@ -22,7 +26,6 @@ A Discord bot with three commands: weather lookup, random jokes, and inspiration
 !weather Paris
 
 Weather in Paris, France
-
 Condition: Partly Cloudy
 Temperature: 18°C (feels like 16°C)
 Humidity: 65%
@@ -33,9 +36,7 @@ Wind: 14 km/h
 ```
 !joke
 
-Why don't scientists trust atoms?
-
-||Because they make up everything!||
+Why don't eggs tell jokes? They'd crack each other up.
 ```
 
 **Quote:**
@@ -43,8 +44,21 @@ Why don't scientists trust atoms?
 !quote
 
 "The only way to do great work is to love what you do."
-
 — Steve Jobs
+```
+
+**Stock:**
+```
+!stock
+→ Sends live prices + bar chart image showing daily % change for
+  AAPL, MSFT, GOOGL, AMZN, TSLA, META, NVDA, and Gold
+```
+
+**Prediction:**
+```
+!prediction NVDA
+→ Fetches latest NVDA news headline, runs FinBERT sentiment +
+  XGBoost model, returns BUY/SELL/HOLD with T+1/T+3/T+5 forecasts
 ```
 
 ---
@@ -55,10 +69,9 @@ Why don't scientists trust atoms?
 
 1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
 2. Click **New Application** → give it a name → **Create**
-3. Go to **Bot** → click **Add Bot**
-4. Under **Token** click **Reset Token** and copy it
-5. Under **Privileged Gateway Intents** enable **Message Content Intent**
-6. Go to **OAuth2 → URL Generator** → check `bot` scope → check `Send Messages`, `Read Message History` permissions → copy the URL and use it to invite the bot to your server
+3. Go to **Bot** → **Reset Token** → copy it
+4. Enable **Message Content Intent** under Privileged Gateway Intents
+5. Go to **OAuth2 → URL Generator** → check `bot` → check `Send Messages`, `Read Message History`, `View Channels`, `Embed Links` → copy URL → invite bot to your server
 
 ### 2. Install dependencies
 
@@ -72,7 +85,7 @@ pip install -r requirements.txt
 
 ```bash
 copy .env.example .env
-# Edit .env and paste your token:
+# Edit .env:
 # DISCORD_TOKEN=your_token_here
 ```
 
@@ -87,11 +100,12 @@ python bot.py
 ## Deployment (Railway)
 
 1. Push this repo to GitHub
-2. Go to [railway.app](https://railway.app/) and create a new project from your GitHub repo
-3. Go to **Variables** → add: `DISCORD_TOKEN = your_token_here`
-4. Railway picks up `railway.toml` automatically and deploys
+2. Go to [railway.app](https://railway.app/) → **New Project** → **Deploy from GitHub repo**
+3. Select `personal-bot`
+4. Go to **Variables** → add `DISCORD_TOKEN = your_token_here`
+5. Railway auto-deploys using `railway.toml`
 
-The bot runs as a persistent worker process.
+The bot runs as a persistent worker — no webhook needed.
 
 ---
 
@@ -99,25 +113,37 @@ The bot runs as a persistent worker process.
 
 ```
 personal-bot/
-├── bot.py               # Entry point, loads all cogs
-├── config.py            # Loads DISCORD_TOKEN from environment
+├── bot.py                  # Entry point, loads all handlers
+├── config.py               # Loads DISCORD_TOKEN from environment
 ├── handlers/
-│   ├── start.py         # !hello command
-│   ├── weather.py       # !weather command (wttr.in)
-│   ├── joke.py          # !joke command (jokeapi.dev)
-│   └── quote.py         # !quote command (quotable.io)
+│   ├── start.py            # !hello
+│   ├── weather.py          # !weather (wttr.in)
+│   ├── joke.py             # !joke (icanhazdadjoke.com)
+│   ├── quote.py            # !quote (zenquotes.io)
+│   ├── stock.py            # !stock (yfinance + matplotlib chart)
+│   └── prediction.py       # !prediction (FinBERT + XGBoost, local only)
 ├── requirements.txt
-├── Procfile             # For Heroku-compatible platforms
-├── railway.toml         # Railway deployment config
-└── .env.example         # Environment variable template
+├── Procfile
+├── railway.toml
+└── .env.example
 ```
 
 ---
 
-## APIs Used
+## APIs & Libraries Used
 
-- **Weather**: [wttr.in](https://wttr.in/) — no API key required
-- **Jokes**: [jokeapi.dev](https://jokeapi.dev/) — no API key required
-- **Quotes**: [quotable.io](https://quotable.io/) — no API key required
+| Command | Source | API Key? |
+|---------|--------|----------|
+| `!weather` | wttr.in | No |
+| `!joke` | icanhazdadjoke.com | No |
+| `!quote` | zenquotes.io | No |
+| `!stock` | Yahoo Finance (yfinance) | No |
+| `!prediction` | Yahoo Finance + FinBERT + XGBoost | No |
 
-No extra accounts needed beyond your Discord bot token.
+---
+
+## Git Workflow
+
+- Feature branches: `feature/weather-command`, `feature/joke-command`, `feature/quote-command`, `feature/stock-command`
+- Git worktrees used for parallel development of weather and joke commands
+- GitHub issues tracked per command (#1–#5)
