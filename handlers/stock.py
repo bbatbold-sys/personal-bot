@@ -99,8 +99,9 @@ class Stock(commands.Cog):
                 await ctx.send("\n".join(lines), file=discord.File(buf, filename="stocks.png"))
 
             except Exception as e:
-                print(f"Stock error: {e}")
-                await ctx.send("Couldn't fetch stock data right now. Try again!")
+                import traceback
+                print(f"Stock error: {e}\n{traceback.format_exc()}")
+                await ctx.send(f"Couldn't fetch stock data right now. Error: `{e}`")
 
 
 async def setup(bot):
