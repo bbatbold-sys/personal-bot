@@ -1,13 +1,16 @@
 import asyncio
 import functools
 import io
+import os
 
 import discord
+import httpx
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import yfinance as yf
 from discord.ext import commands
+
+FINNHUB_TOKEN = os.getenv("FINNHUB_TOKEN", "")
 
 TICKERS = {
     "AAPL":  "Apple",
@@ -17,25 +20,46 @@ TICKERS = {
     "TSLA":  "Tesla",
     "META":  "Meta",
     "NVDA":  "Nvidia",
-    "GC=F":  "Gold",
 }
+
+GOLD_SYMBOL = "OANDA:XAU_USD"
 
 
 def _fetch():
     results = []
-    for symbol, name in TICKERS.items():
+    with httpx.Client(timeout=10) as client:
+        # Fetch stocks
+        for symbol, name in TICKERS.items():
+            try:
+                r = client.get(
+                    "https://finnhub.io/api/v1/quote",
+                    params={"symbol": symbol, "token": FINNHUB_TOKEN},
+                )
+                data = r.json()
+                price = data["c"]
+                prev = data["pc"]
+                if not price or not prev:
+                    continue
+                change_pct = ((price - prev) / prev) * 100
+                results.append((symbol, name, price, change_pct))
+            except Exception as e:
+                print(f"Failed to fetch {symbol}: {e}")
+
+        # Fetch Gold
         try:
-            hist = yf.Ticker(symbol).history(period="5d")
-            if len(hist) < 2:
-                print(f"Not enough data for {symbol}")
-                continue
-            price = float(hist["Close"].iloc[-1])
-            prev = float(hist["Close"].iloc[-2])
-            change_pct = ((price - prev) / prev) * 100
-            results.append((symbol, name, price, change_pct))
+            r = client.get(
+                "https://finnhub.io/api/v1/quote",
+                params={"symbol": GOLD_SYMBOL, "token": FINNHUB_TOKEN},
+            )
+            data = r.json()
+            price = data["c"]
+            prev = data["pc"]
+            if price and prev:
+                change_pct = ((price - prev) / prev) * 100
+                results.append(("XAU/USD", "Gold", price, change_pct))
         except Exception as e:
-            print(f"Failed to fetch {symbol}: {e}")
-    return results
+            print(f"Failed to fetch Gold: {e}")
+
     return results
 
 
@@ -87,24 +111,22 @@ class Stock(commands.Cog):
                 results = await loop.run_in_executor(None, functools.partial(_fetch))
 
                 if not results:
-                    await ctx.send("Couldn't fetch any stock data. Check Railway logs for details.")
+                    await ctx.send("Couldn't fetch stock data right now. Try again!")
                     return
 
                 lines = ["**Stock & Gold Prices**\n"]
                 for symbol, name, price, change_pct in results:
                     arrow = "↑" if change_pct >= 0 else "↓"
                     sign = "+" if change_pct >= 0 else ""
-                    unit = "oz" if symbol == "GC=F" else ""
                     lines.append(
-                        f"**{symbol}** {name}: `${price:,.2f}{f'/{unit}' if unit else ''}` {arrow} {sign}{change_pct:.2f}%"
+                        f"**{symbol}** {name}: `${price:,.2f}` {arrow} {sign}{change_pct:.2f}%"
                     )
 
                 buf = await loop.run_in_executor(None, functools.partial(_build_chart, results))
                 await ctx.send("\n".join(lines), file=discord.File(buf, filename="stocks.png"))
 
             except Exception as e:
-                import traceback
-                print(f"Stock error: {e}\n{traceback.format_exc()}")
+                print(f"Stock error: {e}")
                 await ctx.send(f"Couldn't fetch stock data right now. Error: `{e}`")
 
 
