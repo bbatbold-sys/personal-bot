@@ -1,7 +1,7 @@
 import httpx
 from discord.ext import commands
 
-JOKE_API_URL = "https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,racist,sexist,explicit"
+JOKE_API_URL = "https://icanhazdadjoke.com/"
 
 
 class Joke(commands.Cog):
@@ -13,18 +13,18 @@ class Joke(commands.Cog):
         async with ctx.typing():
             try:
                 async with httpx.AsyncClient() as client:
-                    response = await client.get(JOKE_API_URL, timeout=10)
+                    response = await client.get(
+                        JOKE_API_URL,
+                        headers={"Accept": "application/json"},
+                        timeout=10,
+                    )
                     response.raise_for_status()
                     data = response.json()
 
-                if data["type"] == "single":
-                    text = data["joke"]
-                else:
-                    text = f"{data['setup']}\n\n||{data['delivery']}||"
+                await ctx.send(data["joke"])
 
-                await ctx.send(text)
-
-            except Exception:
+            except Exception as e:
+                print(f"Joke error: {e}")
                 await ctx.send("Couldn't fetch a joke right now. Try again!")
 
 

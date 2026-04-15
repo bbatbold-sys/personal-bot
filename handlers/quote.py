@@ -1,7 +1,7 @@
 import httpx
 from discord.ext import commands
 
-QUOTE_API_URL = "https://api.quotable.io/random"
+QUOTE_API_URL = "https://zenquotes.io/api/random"
 
 
 class Quote(commands.Cog):
@@ -17,7 +17,7 @@ class Quote(commands.Cog):
                     response.raise_for_status()
                     data = response.json()
 
-                text = f'*"{data["content"]}"*\n\n— **{data["author"]}**'
+                text = f'*"{data[0]["q"]}"*\n\n— **{data[0]["a"]}**'
                 await ctx.send(text)
 
             except Exception:
