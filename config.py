@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 
-if not BOT_TOKEN:
-    raise ValueError("BOT_TOKEN environment variable is not set")
+if not DISCORD_TOKEN:
+    raise ValueError("DISCORD_TOKEN environment variable is not set")

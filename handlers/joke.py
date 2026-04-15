@@ -1,23 +1,32 @@
 import httpx
-from telegram import Update
-from telegram.ext import ContextTypes
+from discord.ext import commands
 
 JOKE_API_URL = "https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,racist,sexist,explicit"
 
 
-async def joke_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(JOKE_API_URL, timeout=10)
-            response.raise_for_status()
-            data = response.json()
+class Joke(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
 
-        if data["type"] == "single":
-            text = data["joke"]
-        else:
-            text = f"{data['setup']}\n\n{data['delivery']}"
+    @commands.command(name="joke")
+    async def joke(self, ctx):
+        async with ctx.typing():
+            try:
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(JOKE_API_URL, timeout=10)
+                    response.raise_for_status()
+                    data = response.json()
 
-        await update.message.reply_text(text)
+                if data["type"] == "single":
+                    text = data["joke"]
+                else:
+                    text = f"{data['setup']}\n\n||{data['delivery']}||"
 
-    except Exception:
-        await update.message.reply_text("Couldn't fetch a joke right now. Try again!")
+                await ctx.send(text)
+
+            except Exception:
+                await ctx.send("Couldn't fetch a joke right now. Try again!")
+
+
+async def setup(bot):
+    await bot.add_cog(Joke(bot))

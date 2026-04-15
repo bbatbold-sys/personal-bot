@@ -1,6 +1,6 @@
-# Personal Telegram Bot
+# Personal Discord Bot
 
-A Telegram bot with three commands: weather lookup, random jokes, and inspirational quotes. Built with `python-telegram-bot` and deployed on Railway.
+A Discord bot with three commands: weather lookup, random jokes, and inspirational quotes. Built with `discord.py` and deployed on Railway.
 
 ---
 
@@ -8,10 +8,10 @@ A Telegram bot with three commands: weather lookup, random jokes, and inspiratio
 
 | Command | Description | Example |
 |---------|-------------|---------|
-| `/start` | Show help message | `/start` |
-| `/weather <city>` | Current weather for any city | `/weather Tokyo` |
-| `/joke` | Random joke (family-friendly) | `/joke` |
-| `/quote` | Random inspirational quote | `/quote` |
+| `!hello` | Show help message | `!hello` |
+| `!weather <city>` | Current weather for any city | `!weather Tokyo` |
+| `!joke` | Random joke (family-friendly) | `!joke` |
+| `!quote` | Random inspirational quote | `!quote` |
 
 ---
 
@@ -19,7 +19,7 @@ A Telegram bot with three commands: weather lookup, random jokes, and inspiratio
 
 **Weather:**
 ```
-/weather Paris
+!weather Paris
 
 Weather in Paris, France
 
@@ -31,16 +31,16 @@ Wind: 14 km/h
 
 **Joke:**
 ```
-/joke
+!joke
 
 Why don't scientists trust atoms?
 
-Because they make up everything!
+||Because they make up everything!||
 ```
 
 **Quote:**
 ```
-/quote
+!quote
 
 "The only way to do great work is to love what you do."
 
@@ -51,24 +51,29 @@ Because they make up everything!
 
 ## Setup
 
-### 1. Get a bot token
+### 1. Create a Discord bot
 
-1. Open Telegram and message [@BotFather](https://t.me/botfather)
-2. Send `/newbot` and follow the prompts
-3. Copy the token you receive
+1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
+2. Click **New Application** → give it a name → **Create**
+3. Go to **Bot** → click **Add Bot**
+4. Under **Token** click **Reset Token** and copy it
+5. Under **Privileged Gateway Intents** enable **Message Content Intent**
+6. Go to **OAuth2 → URL Generator** → check `bot` scope → check `Send Messages`, `Read Message History` permissions → copy the URL and use it to invite the bot to your server
 
 ### 2. Install dependencies
 
 ```bash
+python -m venv venv
+venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
 ### 3. Configure environment
 
 ```bash
-cp .env.example .env
+copy .env.example .env
 # Edit .env and paste your token:
-# BOT_TOKEN=your_token_here
+# DISCORD_TOKEN=your_token_here
 ```
 
 ### 4. Run locally
@@ -82,11 +87,11 @@ python bot.py
 ## Deployment (Railway)
 
 1. Push this repo to GitHub
-2. Go to [railway.app](https://railway.app/) and create a new project from your repo
-3. Add environment variable: `BOT_TOKEN = your_token_here`
+2. Go to [railway.app](https://railway.app/) and create a new project from your GitHub repo
+3. Go to **Variables** → add: `DISCORD_TOKEN = your_token_here`
 4. Railway picks up `railway.toml` automatically and deploys
 
-The bot runs as a persistent worker process — no webhook setup needed.
+The bot runs as a persistent worker process.
 
 ---
 
@@ -94,13 +99,13 @@ The bot runs as a persistent worker process — no webhook setup needed.
 
 ```
 personal-bot/
-├── bot.py               # Entry point, registers all handlers
-├── config.py            # Loads BOT_TOKEN from environment
+├── bot.py               # Entry point, loads all cogs
+├── config.py            # Loads DISCORD_TOKEN from environment
 ├── handlers/
-│   ├── start.py         # /start command
-│   ├── weather.py       # /weather command (wttr.in)
-│   ├── joke.py          # /joke command (jokeapi.dev)
-│   └── quote.py         # /quote command (quotable.io)
+│   ├── start.py         # !hello command
+│   ├── weather.py       # !weather command (wttr.in)
+│   ├── joke.py          # !joke command (jokeapi.dev)
+│   └── quote.py         # !quote command (quotable.io)
 ├── requirements.txt
 ├── Procfile             # For Heroku-compatible platforms
 ├── railway.toml         # Railway deployment config
@@ -115,4 +120,4 @@ personal-bot/
 - **Jokes**: [jokeapi.dev](https://jokeapi.dev/) — no API key required
 - **Quotes**: [quotable.io](https://quotable.io/) — no API key required
 
-No extra accounts needed beyond your Telegram bot token.
+No extra accounts needed beyond your Discord bot token.

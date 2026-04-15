@@ -1,22 +1,27 @@
-from telegram.ext import ApplicationBuilder, CommandHandler
-from config import BOT_TOKEN
-from handlers.start import start_handler
-from handlers.weather import weather_handler
-from handlers.joke import joke_handler
-from handlers.quote import quote_handler
+import discord
+from discord.ext import commands
+from config import DISCORD_TOKEN
+
+intents = discord.Intents.default()
+intents.message_content = True
+
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 
-def main():
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
+@bot.event
+async def on_ready():
+    print(f"Logged in as {bot.user} (ID: {bot.user.id})")
 
-    app.add_handler(CommandHandler("start", start_handler))
-    app.add_handler(CommandHandler("weather", weather_handler))
-    app.add_handler(CommandHandler("joke", joke_handler))
-    app.add_handler(CommandHandler("quote", quote_handler))
 
-    print("Bot is running...")
-    app.run_polling()
+async def main():
+    async with bot:
+        await bot.load_extension("handlers.start")
+        await bot.load_extension("handlers.weather")
+        await bot.load_extension("handlers.joke")
+        await bot.load_extension("handlers.quote")
+        await bot.start(DISCORD_TOKEN)
 
 
 if __name__ == "__main__":
-    main()
+    import asyncio
+    asyncio.run(main())
