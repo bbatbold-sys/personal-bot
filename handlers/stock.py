@@ -30,8 +30,9 @@ def _fetch():
             prev = fi.previous_close
             change_pct = ((price - prev) / prev) * 100
             results.append((symbol, name, price, change_pct))
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"Failed to fetch {symbol}: {e}")
+    return results
     return results
 
 
@@ -83,7 +84,7 @@ class Stock(commands.Cog):
                 results = await loop.run_in_executor(None, functools.partial(_fetch))
 
                 if not results:
-                    await ctx.send("Couldn't fetch stock data right now. Try again!")
+                    await ctx.send("Couldn't fetch any stock data. Check Railway logs for details.")
                     return
 
                 lines = ["**Stock & Gold Prices**\n"]
